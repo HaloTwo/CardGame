@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cadac204b04bace41bffa81602dd7d3e, type: 3}
+  m_Name: Cheese_Normal
+  m_EditorClassIdentifier: Assembly-CSharp::BattleCardDefinition
+  cardName: Cheese
+  cardType: 0
+  maxHp: 5
+  cardSprite: {fileID: 0}
+  abilityText: "\uD604\uC7AC HP\uB9CC\uD07C \uD53C\uD574, \uB300\uC0C1 \uD604\uC7AC
+    HP\uB9CC\uD07C \uBC18\uACA9"
+  cardColor: {r: 1, g: 0.86, b: 0.45, a: 1}

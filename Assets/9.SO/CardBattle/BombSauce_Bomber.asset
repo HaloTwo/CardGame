@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cadac204b04bace41bffa81602dd7d3e, type: 3}
+  m_Name: BombSauce_Bomber
+  m_EditorClassIdentifier: Assembly-CSharp::BattleCardDefinition
+  cardName: Bomb Sauce
+  cardType: 4
+  maxHp: 4
+  cardSprite: {fileID: 0}
+  abilityText: "\uCE74\uB4DC\uD6A8\uACFC: \uB300\uC0C1 \uD604\uC7AC HP \uD53C\uD574
+    + \uB098\uBA38\uC9C0 \uC801 1 \uD53C\uD574"
+  cardColor: {r: 1, g: 0.55, b: 0.12, a: 1}
