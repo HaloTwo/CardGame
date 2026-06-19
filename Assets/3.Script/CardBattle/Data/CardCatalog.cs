@@ -16,9 +16,8 @@ public static class CardCatalog
         new("spicy_berserker", "매운 광전사", BattleCardType.Berserker, 6, "스킬: 잃은 HP만큼 추가 피해를 주고 자신도 1 피해를 받습니다.", new Color(0.95f, 0.16f, 0.16f, 1f), false),
         new("guard_burger", "수호 버거", BattleCardType.Guardian, 8, "스킬: 절반 피해를 주고 자신 HP를 1 회복합니다.", new Color(0.36f, 0.62f, 1f, 1f), false),
         new("skewer", "꼬치", BattleCardType.Piercing, 4, "스킬: 대상 피해와 함께 양옆 적에게 1 피해를 줍니다.", new Color(0.82f, 0.82f, 0.92f, 1f), false),
-        new("double_patty", "더블 패티", BattleCardType.Normal, 8, "기본 공격 특화: 높은 HP로 강한 피해를 노립니다.", new Color(0.8f, 0.48f, 0.25f, 1f), false),
-        new("ice_cream", "아이스크림", BattleCardType.Healer, 4, "패시브: 턴 시작 시 자신을 제외한 아군 HP를 1 회복합니다.", new Color(0.95f, 0.75f, 1f, 1f), false),
-        new("cola_sniper", "콜라 저격수", BattleCardType.Ranged, 5, "스킬: 반격 없이 현재 HP만큼 피해를 줍니다.", new Color(0.25f, 0.55f, 1f, 1f), false)
+        new("cheese", "치즈", BattleCardType.Normal, 8, "기본 공격 특화: 높은 HP로 강한 피해를 노립니다.", new Color(0.8f, 0.48f, 0.25f, 1f), false),
+        new("onion", "양파", BattleCardType.Healer, 4, "패시브: 턴 시작 시 자신을 제외한 아군 HP를 1 회복합니다.", new Color(0.95f, 0.75f, 1f, 1f), false)
     };
 
     public static CardCatalogEntry[] Cards => cards; /* 전체 카드 기획 목록 */
@@ -72,39 +71,44 @@ public class CardCatalogEntry
 
 public static class CardCatalogSpriteLoader
 {
-    /* 카드 ID에 맞는 이미지 파일명을 반환합니다. */
-    private static string GetSpriteName(string id)
+    public static Sprite Load(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return null;
+
+        string[] resourceNames = GetResourceNames(id);
+
+        for (int i = 0; i < resourceNames.Length; i++)
+        {
+            Sprite sprite = Resources.Load<Sprite>($"CardImages/{resourceNames[i]}");
+            if (sprite != null)
+                return sprite;
+        }
+
+#if UNITY_EDITOR
+        Debug.LogWarning($"Card sprite not found. id={id}, tried={string.Join(", ", resourceNames)}");
+#endif
+
+        return null;
+    }
+
+    private static string[] GetResourceNames(string id)
     {
         return id switch
         {
-            "burger" => "\uBC84\uAC70",
-            "fries" => "\uAC10\uC790\uD280\uAE40",
-            "monster" => "\uBAAC\uC2A4\uD130",
-            "soda" => "\uC18C\uB2E4",
-            "bomb_sauce" => "\uD3ED\uD0C4\uC18C\uC2A4",
-            "vampire_shake" => "\uD761\uD608 \uC250\uC774\uD06C",
-            "spicy_berserker" => "\uB9E4\uC6B4\uC18C\uC2A4",
-            "guard_burger" => "\uC218\uD638\uBC84\uAC70",
-            "skewer" => "\uAF2C\uCE58",
-            "double_patty" => "\uCE58\uC988",
-            "ice_cream" => "\uC591\uD30C",
-            "cola_sniper" => "\uC218\uD638\uBC84\uAC70",
-            _ => id
+            "burger" => new[] { "Burger" },
+            "fries" => new[] { "Fries" },
+            "monster" => new[] { "Monster" },
+            "soda" => new[] { "Soda" },
+            "bomb_sauce" => new[] { "Bomb_sauce" },
+            "vampire_shake" => new[] { "Vampire_shake" },
+            "spicy_berserker" => new[] { "Spicy_berserker" },
+            "guard_burger" => new[] { "Guard_burger" },
+            "skewer" => new[] { "Skewer" },
+            "cheese" => new[] { "Cheese"},
+            "onion" => new[] { "Onion" },
+
+            _ => new[] { id }
         };
-    }
-
-    /* 에디터에서는 4.Sprite 원본을 읽고, 빌드에서는 Resources/CardImages 폴더를 우선 사용합니다. */
-    public static Sprite Load(string id)
-    {
-        string spriteName = GetSpriteName(id);
-        Sprite sprite = Resources.Load<Sprite>($"CardImages/{spriteName}");
-        if (sprite != null)
-            return sprite;
-
-#if UNITY_EDITOR
-        return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/4.Sprite/{spriteName}.png");
-#else
-        return null;
-#endif
     }
 }
