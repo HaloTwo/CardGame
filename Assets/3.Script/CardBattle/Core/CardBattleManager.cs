@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -17,6 +18,7 @@ public class CardBattleManager : Singleton<CardBattleManager>
     private BattleActionType selectedAction; // 현재 선택한 공격 또는 스킬 행동
     private BattleTurn currentTurn; // 현재 진행 중인 턴 소유자
     private BattleState state; // 현재 입력 단계와 전투 상태
+    private bool battleRewarded; // 전투 결과 보상을 이미 저장했는지 여부
 
     // 씬 시작 시 UI 이벤트를 연결하고 새 전투를 시작한다.
     // 씬 시작 시 UI 이벤트를 연결하고 타이틀 시작 화면을 표시한다.
@@ -45,8 +47,26 @@ public class CardBattleManager : Singleton<CardBattleManager>
             if (view.HomeButton != null)
                 view.HomeButton.onClick.RemoveListener(LoadStartScene);
 
+            if (view.PlayerDeckButton != null)
+                view.PlayerDeckButton.onClick.RemoveListener(ShowPlayerDeckInfo);
+
+            if (view.EnemyDeckButton != null)
+                view.EnemyDeckButton.onClick.RemoveListener(ShowEnemyDeckInfo);
+
+            if (view.DeckInfoCloseButton != null)
+                view.DeckInfoCloseButton.onClick.RemoveListener(HideDeckInfo);
+
             if (view.RestartButton != null)
-                view.RestartButton.onClick.RemoveListener(StartBattle);
+                view.RestartButton.onClick.RemoveListener(ShowOptionPanel);
+
+            if (view.OptionRetryButton != null)
+                view.OptionRetryButton.onClick.RemoveListener(StartBattleFromOption);
+
+            if (view.OptionLobbyButton != null)
+                view.OptionLobbyButton.onClick.RemoveListener(LoadStartScene);
+
+            if (view.OptionCloseButton != null)
+                view.OptionCloseButton.onClick.RemoveListener(HideOptionPanel);
         }
 
         base.OnDestroy();
@@ -64,6 +84,10 @@ public class CardBattleManager : Singleton<CardBattleManager>
             return;
 
         view.SetResult(false, false);
+        view.HideDeckInfo();
+        view.HideImpact();
+        view.HideOptionPanel();
+        battleRewarded = false;
         playerField.Reset(BattleDeckFactory.CreateDeck(playerDeckDefinitions, CardOwner.Player));
         enemyField.Reset(BattleDeckFactory.CreateDeck(enemyDeckDefinitions, CardOwner.Enemy));
         RefreshAllSlots();
@@ -75,7 +99,11 @@ public class CardBattleManager : Singleton<CardBattleManager>
     // UI 버튼과 카드 슬롯 클릭 이벤트를 전투 흐름 함수에 연결한다.
     private void BindViewEvents()
     {
-        view = CardBattleRuntimeViewBuilder.CreateOrRepair();
+        if (view == null)
+            view = FindFirstObjectByType<CardBattleView>();
+
+        if (view == null || !view.IsReady())
+            view = CardBattleRuntimeViewBuilder.CreateOrRepair();
 
         if (view == null || !view.IsReady())
         {
@@ -93,13 +121,27 @@ public class CardBattleManager : Singleton<CardBattleManager>
         view.SkillButton.onClick.RemoveListener(SelectSkill);
         view.RetryButton.onClick.RemoveListener(StartBattle);
         view.HomeButton.onClick.RemoveListener(LoadStartScene);
-        view.RestartButton.onClick.RemoveListener(StartBattle);
+        view.PlayerDeckButton.onClick.RemoveListener(ShowPlayerDeckInfo);
+        view.EnemyDeckButton.onClick.RemoveListener(ShowEnemyDeckInfo);
+        view.DeckInfoCloseButton.onClick.RemoveListener(HideDeckInfo);
+        view.RestartButton.onClick.RemoveListener(ShowOptionPanel);
+        view.OptionRetryButton.onClick.RemoveListener(StartBattleFromOption);
+        view.OptionLobbyButton.onClick.RemoveListener(LoadStartScene);
+        view.OptionCloseButton.onClick.RemoveListener(HideOptionPanel);
 
         view.AttackButton.onClick.AddListener(SelectAttack);
         view.SkillButton.onClick.AddListener(SelectSkill);
         view.RetryButton.onClick.AddListener(StartBattle);
         view.HomeButton.onClick.AddListener(LoadStartScene);
-        view.RestartButton.onClick.AddListener(StartBattle);
+        view.PlayerDeckButton.onClick.AddListener(ShowPlayerDeckInfo);
+        view.EnemyDeckButton.onClick.AddListener(ShowEnemyDeckInfo);
+        view.DeckInfoCloseButton.onClick.AddListener(HideDeckInfo);
+        view.RestartButton.onClick.AddListener(ShowOptionPanel);
+        view.OptionRetryButton.onClick.AddListener(StartBattleFromOption);
+        view.OptionLobbyButton.onClick.AddListener(LoadStartScene);
+        view.OptionCloseButton.onClick.AddListener(HideOptionPanel);
+
+        ApplyBattleMenuLabels();
     }
 
     // 에디터 빌더에서 생성한 카드 정의 배열을 매니저에 연결한다.
@@ -240,6 +282,7 @@ public class CardBattleManager : Singleton<CardBattleManager>
 
         view.SetInfo($"{target.Data.CardName}에게 {actionName}을 사용합니다.");
         GetSlotByCard(target)?.PlayHit();
+        StartCoroutine(CoImpact(actionType == BattleActionType.Skill ? "SKILL HIT!" : "ATTACK!"));
         ShowDamagePreview(actor, target, actionType);
         yield return new WaitForSeconds(0.45f);
 
@@ -266,6 +309,7 @@ public class CardBattleManager : Singleton<CardBattleManager>
 
             GetSlotByCard(target)?.PlayHit();
             view.SetInfo($"{target.Data.CardName}에게 {actionName}을 사용합니다.");
+            StartCoroutine(CoImpact(enemyAction == BattleActionType.Skill ? "ENEMY SKILL!" : "ENEMY ATTACK!"));
             ShowDamagePreview(actor, target, enemyAction);
             yield return new WaitForSeconds(enemyStepDelay);
 
@@ -311,8 +355,17 @@ public class CardBattleManager : Singleton<CardBattleManager>
 
         state = BattleState.GameOver;
         view.SetActionButtons(false);
-        view.SetInfo(enemyAlive ? "패배했습니다. 다시 도전하세요." : "승리했습니다.");
-        view.SetResult(true, !enemyAlive);
+        bool isWin = !enemyAlive; // 적 카드가 모두 제거되면 승리
+        string rewardMessage = string.Empty; // 결과 화면에 표시할 획득/성장 보상
+
+        if (!battleRewarded)
+        {
+            rewardMessage = CardPlayerProfile.RecordBattleResult(isWin);
+            battleRewarded = true;
+        }
+
+        view.SetInfo(isWin ? $"승리했습니다. {rewardMessage}" : $"패배했습니다. {rewardMessage}");
+        view.SetResult(true, isWin);
         return true;
     }
 
@@ -320,6 +373,100 @@ public class CardBattleManager : Singleton<CardBattleManager>
     private void LoadStartScene()
     {
         SceneManager.LoadScene("StartScene");
+    }
+
+    // 전투 메뉴의 도감 버튼에서 로비로 이동한 뒤 카드 도감을 바로 열도록 요청합니다.
+    private void LoadCollectionScene()
+    {
+        view.HideOptionPanel();
+        view.ShowInfoPopup(BuildBattleCollectionText());
+        view.SetInfo("전투 중 카드 도감을 확인합니다. 닫기를 누르면 전투로 돌아옵니다.");
+    }
+
+    // 플레이어 대기 카드 더미를 눌렀을 때 설명 팝업을 연다.
+    // 전투 중 MENU > 도감에서 보여줄 카드 효과 요약을 만듭니다.
+    private string BuildBattleCollectionText()
+    {
+        StringBuilder builder = new();
+        builder.AppendLine("전투 카드 도감");
+        builder.AppendLine();
+        builder.Clear();
+
+        builder.AppendLine("카드 종류 설명");
+        builder.AppendLine("일반: 현재 HP만큼 피해를 주고 대상 HP만큼 반격 피해를 받습니다.");
+        builder.AppendLine("원거리: 현재 HP만큼 피해를 주고 반격 피해를 받지 않습니다.");
+        builder.AppendLine("무쌍: 대상에게 100%, 인접한 적 1장에게 50% 피해를 줍니다.");
+        builder.AppendLine("힐러: 턴 시작 시 자신 제외 아군 HP를 1 회복합니다. 공격은 일반과 같습니다.");
+        builder.AppendLine("폭탄: 대상에게 현재 HP 피해, 나머지 적에게 1 피해를 줍니다.");
+        builder.AppendLine("흡혈: 현재 HP 피해를 주고 자신 HP를 2 회복합니다.");
+        builder.AppendLine("광전사: 잃은 HP만큼 추가 피해를 주고 자신도 1 피해를 받습니다.");
+        builder.AppendLine("수호자: 절반 피해를 주고 자신 HP를 1 회복합니다.");
+        builder.AppendLine("관통: 대상 피해와 함께 양옆 적에게 1 피해를 줍니다.");
+
+        return builder.ToString();
+    }
+
+    private void ShowPlayerDeckInfo()
+    {
+        view.ShowDeckInfo(CardOwner.Player, playerField.RemainDeckCount);
+    }
+
+    // 상대 대기 카드 더미를 눌렀을 때 설명 팝업을 연다.
+    private void ShowEnemyDeckInfo()
+    {
+        view.ShowDeckInfo(CardOwner.Enemy, enemyField.RemainDeckCount);
+    }
+
+    // 대기 카드 설명 팝업을 닫는다.
+    private void HideDeckInfo()
+    {
+        view.HideDeckInfo();
+    }
+
+    // 전투 중 MENU 버튼에서 옵션 팝업을 엽니다.
+    private void ShowOptionPanel()
+    {
+        view.ShowOptionPanel();
+    }
+
+    // 옵션 팝업을 닫고 전투 화면으로 돌아갑니다.
+    private void HideOptionPanel()
+    {
+        view.HideOptionPanel();
+    }
+
+    // 기존 씬에 남아 있는 도감 버튼도 전투 닫기 버튼으로 표시합니다.
+    private void ApplyBattleMenuLabels()
+    {
+        SetButtonText(view.OptionRetryButton, "재시작");
+        SetButtonText(view.OptionLobbyButton, "로비로");
+        SetButtonText(view.OptionCloseButton, "닫기");
+    }
+
+    // 버튼 하위 Text 라벨을 찾아 교체합니다.
+    private void SetButtonText(UnityEngine.UI.Button button, string label)
+    {
+        if (button == null)
+            return;
+
+        UnityEngine.UI.Text text = button.GetComponentInChildren<UnityEngine.UI.Text>(true);
+        if (text != null)
+            text.text = label;
+    }
+
+    // 옵션 팝업에서 다시하기를 눌렀을 때 팝업을 닫고 전투를 재시작합니다.
+    private void StartBattleFromOption()
+    {
+        view.HideOptionPanel();
+        StartBattle();
+    }
+
+    // 타격 순간 화면 플래시와 큰 임팩트 텍스트를 잠깐 표시한다.
+    private IEnumerator CoImpact(string message)
+    {
+        view.ShowImpact(message, new Color(1f, 0.2f, 0.05f, 0.22f));
+        yield return new WaitForSeconds(0.16f);
+        view.HideImpact();
     }
 
 
@@ -374,13 +521,12 @@ public class CardBattleManager : Singleton<CardBattleManager>
     }
 
     // 실제 룰 적용 전에 예상 피해 숫자를 카드 위에 표시한다.
-    // 실제 룰 적용 전에 예상 피해 숫자를 카드 위에 표시한다.
     private void ShowDamagePreview(BattleCardRuntime actor, BattleCardRuntime target, BattleActionType actionType)
     {
         if (actor == null || target == null)
             return;
 
-        int targetDamage = actor.CurrentHp; // 대상에게 줄 기본 피해
+        int targetDamage = GetPreviewDamage(actor, actionType); // 대상에게 줄 예상 피해
         GetSlotByCard(target)?.ShowDamageText(targetDamage);
 
         if (actionType == BattleActionType.Attack)
@@ -392,6 +538,23 @@ public class CardBattleManager : Singleton<CardBattleManager>
 
         if (actor.Data.CardType == BattleCardType.Bomber)
             ShowBomberSplashPreview(target);
+
+        if (actor.Data.CardType == BattleCardType.Piercing)
+            ShowPiercingSplashPreview(target);
+    }
+
+    // 액티브 효과별 실제 룰과 맞는 예상 피해량을 계산한다.
+    private int GetPreviewDamage(BattleCardRuntime actor, BattleActionType actionType)
+    {
+        if (actionType == BattleActionType.Attack || actor == null)
+            return actor != null ? actor.CurrentHp : 0;
+
+        return actor.Data.CardType switch
+        {
+            BattleCardType.Berserker => actor.CurrentHp + (actor.Data.MaxHp - actor.CurrentHp),
+            BattleCardType.Guardian => Mathf.Max(1, Mathf.CeilToInt(actor.CurrentHp * 0.5f)),
+            _ => actor.CurrentHp
+        };
     }
 
     // 폭탄 카드의 광역 1 피해를 대상 외 전장 카드에 미리 표시한다.
@@ -402,6 +565,24 @@ public class CardBattleManager : Singleton<CardBattleManager>
         {
             BattleCardRuntime splashTarget = slots[i].BoundCard; // 폭발 여파 대상 후보
             if (splashTarget == null || splashTarget == mainTarget || splashTarget.IsDead)
+                continue;
+
+            slots[i].PlayHit();
+            slots[i].ShowDamageText(1);
+        }
+    }
+
+    // 관통 카드의 양옆 1 피해를 실제 인접 슬롯에 미리 표시한다.
+    private void ShowPiercingSplashPreview(BattleCardRuntime mainTarget)
+    {
+        CardSlotView[] slots = mainTarget.Owner == CardOwner.Player ? view.PlayerSlots : view.EnemySlots; // 관통 피해를 표시할 상대 전장
+        for (int i = 0; i < slots.Length; i++)
+        {
+            BattleCardRuntime adjacentTarget = slots[i].BoundCard; // 관통 여파 대상 후보
+            if (adjacentTarget == null || adjacentTarget == mainTarget || adjacentTarget.IsDead)
+                continue;
+
+            if (Mathf.Abs(adjacentTarget.SlotIndex - mainTarget.SlotIndex) != 1)
                 continue;
 
             slots[i].PlayHit();

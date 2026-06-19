@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cadac204b04bace41bffa81602dd7d3e, type: 3}
-  m_Name: BombSauce_Bomber
+  m_Name: GuardBurger_Guardian
   m_EditorClassIdentifier: Assembly-CSharp::BattleCardDefinition
-  cardName: "\uD3ED\uD0C4 \uC18C\uC2A4"
-  cardType: 4
-  maxHp: 4
-  cardSprite: {fileID: -6561862969521928841, guid: 233b109da84aeda458d4754e0bb81407, type: 3}
-  abilityText: "\uCE74\uB4DC\uD6A8\uACFC: \uB300\uC0C1 \uD604\uC7AC HP \uD53C\uD574
-    + \uB098\uBA38\uC9C0 \uC801 1 \uD53C\uD574"
-  cardColor: {r: 1, g: 0.55, b: 0.12, a: 1}
+  cardName: "\uC218\uD638 \uBC84\uAC70"
+  cardType: 7
+  maxHp: 8
+  cardSprite: {fileID: 4448038227809417970, guid: c2c22af566eee164589417f1db4e8690, type: 3}
+  abilityText: "\uCE74\uB4DC\uD6A8\uACFC: \uC808\uBC18 \uD53C\uD574\uB97C \uC8FC\uACE0
+    \uC790\uC2E0 HP 1 \uD68C\uBCF5"
+  cardColor: {r: 0.36, g: 0.62, b: 1, a: 1}

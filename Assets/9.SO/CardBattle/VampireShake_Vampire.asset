@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cadac204b04bace41bffa81602dd7d3e, type: 3}
-  m_Name: BombSauce_Bomber
+  m_Name: VampireShake_Vampire
   m_EditorClassIdentifier: Assembly-CSharp::BattleCardDefinition
-  cardName: "\uD3ED\uD0C4 \uC18C\uC2A4"
-  cardType: 4
-  maxHp: 4
-  cardSprite: {fileID: -6561862969521928841, guid: 233b109da84aeda458d4754e0bb81407, type: 3}
-  abilityText: "\uCE74\uB4DC\uD6A8\uACFC: \uB300\uC0C1 \uD604\uC7AC HP \uD53C\uD574
-    + \uB098\uBA38\uC9C0 \uC801 1 \uD53C\uD574"
-  cardColor: {r: 1, g: 0.55, b: 0.12, a: 1}
+  cardName: "\uD761\uD608 \uC250\uC774\uD06C"
+  cardType: 5
+  maxHp: 5
+  cardSprite: {fileID: -6460918376602495240, guid: d56fa2dbddf86204db8f2ca7ef73b56e, type: 3}
+  abilityText: "\uCE74\uB4DC\uD6A8\uACFC: \uB300\uC0C1\uC5D0\uAC8C \uD604\uC7AC HP
+    \uD53C\uD574, \uC790\uC2E0 HP 2 \uD68C\uBCF5"
+  cardColor: {r: 0.78, g: 0.22, b: 0.82, a: 1}

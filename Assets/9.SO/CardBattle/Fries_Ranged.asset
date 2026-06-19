@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cadac204b04bace41bffa81602dd7d3e, type: 3}
   m_Name: Fries_Ranged
   m_EditorClassIdentifier: Assembly-CSharp::BattleCardDefinition
-  cardName: Fries
+  cardName: "\uAC10\uC790\uD280\uAE40"
   cardType: 1
   maxHp: 4
-  cardSprite: {fileID: 0}
+  cardSprite: {fileID: 1973199427168293104, guid: 6d4cc114e58d41c4896e9dd10f9debbc, type: 3}
   abilityText: "\uD604\uC7AC HP\uB9CC\uD07C \uD53C\uD574, \uBC18\uACA9 \uC5C6\uC74C"
   cardColor: {r: 0.45, g: 0.75, b: 1, a: 1}

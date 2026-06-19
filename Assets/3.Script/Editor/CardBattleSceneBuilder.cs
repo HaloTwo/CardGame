@@ -4,6 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.SceneManagement;
 
 public static class CardBattleSceneBuilder
 {
@@ -78,12 +79,17 @@ public static class CardBattleSceneBuilder
         EnsureFolder(CardDefinitionFolder);
 
         List<BattleCardDefinition> cards = new(); // 매니저에 연결할 카드 정의 목록
-        cards.Add(CreateOrLoadCard("Burger_Normal", "Burger", BattleCardType.Normal, 6, "현재 HP만큼 피해, 대상 현재 HP만큼 반격", new Color(1f, 0.86f, 0.45f, 1f)));
-        cards.Add(CreateOrLoadCard("Fries_Ranged", "Fries", BattleCardType.Ranged, 4, "현재 HP만큼 피해, 반격 없음", new Color(0.45f, 0.75f, 1f, 1f)));
-        cards.Add(CreateOrLoadCard("Monster_Musou", "Monster", BattleCardType.Musou, 7, "대상 100% + 인접 랜덤 1장 50%", new Color(1f, 0.45f, 0.35f, 1f)));
-        cards.Add(CreateOrLoadCard("Soda_Healer", "Soda", BattleCardType.Healer, 5, "턴 시작 시 자신 제외 아군 HP 1 회복", new Color(0.45f, 1f, 0.55f, 1f)));
-        cards.Add(CreateOrLoadCard("Cheese_Normal", "Cheese", BattleCardType.Normal, 5, "현재 HP만큼 피해, 대상 현재 HP만큼 반격", new Color(1f, 0.86f, 0.45f, 1f)));
-        cards.Add(CreateOrLoadCard("BombSauce_Bomber", "Bomb Sauce", BattleCardType.Bomber, 4, "카드효과: 대상 현재 HP 피해 + 나머지 적 1 피해", new Color(1f, 0.55f, 0.12f, 1f)));
+        cards.Add(CreateOrLoadCard("Burger_Normal", "버거", BattleCardType.Normal, 6, "현재 HP만큼 피해, 대상 현재 HP만큼 반격", new Color(1f, 0.86f, 0.45f, 1f)));
+        cards.Add(CreateOrLoadCard("Fries_Ranged", "감자튀김", BattleCardType.Ranged, 4, "현재 HP만큼 피해, 반격 없음", new Color(0.45f, 0.75f, 1f, 1f)));
+        cards.Add(CreateOrLoadCard("Monster_Musou", "몬스터", BattleCardType.Musou, 7, "대상 100% + 인접 랜덤 1장 50%", new Color(1f, 0.45f, 0.35f, 1f)));
+        cards.Add(CreateOrLoadCard("Soda_Healer", "소다", BattleCardType.Healer, 5, "턴 시작 시 자신 제외 아군 HP 1 회복", new Color(0.45f, 1f, 0.55f, 1f)));
+        cards.Add(CreateOrLoadCard("BombSauce_Bomber", "폭탄 소스", BattleCardType.Bomber, 4, "카드효과: 대상 현재 HP 피해 + 나머지 적 1 피해", new Color(1f, 0.55f, 0.12f, 1f)));
+        cards.Add(CreateOrLoadCard("VampireShake_Vampire", "흡혈 쉐이크", BattleCardType.Vampire, 5, "카드효과: 대상에게 현재 HP 피해, 자신 HP 2 회복", new Color(0.78f, 0.22f, 0.82f, 1f)));
+
+        CreateOrLoadCard("Cheese_Normal", "치즈", BattleCardType.Normal, 5, "현재 HP만큼 피해, 대상 현재 HP만큼 반격", new Color(1f, 0.86f, 0.45f, 1f));
+        CreateOrLoadCard("SpicyBerserker_Berserker", "매운 광전사", BattleCardType.Berserker, 6, "카드효과: 잃은 HP만큼 추가 피해, 자신 1 피해", new Color(0.95f, 0.16f, 0.16f, 1f));
+        CreateOrLoadCard("GuardBurger_Guardian", "수호 버거", BattleCardType.Guardian, 8, "카드효과: 절반 피해를 주고 자신 HP 1 회복", new Color(0.36f, 0.62f, 1f, 1f));
+        CreateOrLoadCard("Skewer_Piercing", "꼬치", BattleCardType.Piercing, 4, "카드효과: 대상 피해 + 양옆 적 1 피해", new Color(0.82f, 0.82f, 0.92f, 1f));
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -127,5 +133,102 @@ public static class CardBattleSceneBuilder
 
             current = next;
         }
+    }
+}
+
+[InitializeOnLoad]
+public static class StartSceneBuilder
+{
+    private const string StartScenePath = "Assets/1.Scene/StartScene.unity"; // 로비 UI를 고정 저장할 시작 씬 경로
+    private const string AutoBuildVersion = "2026-06-19-StartSceneFixedLobby-v2"; // 자동 저장 중복 실행 방지 키
+
+    // Unity가 이미 열린 상태에서도 리컴파일 후 시작 씬 로비 UI를 실제 씬 파일에 저장합니다.
+    static StartSceneBuilder()
+    {
+        Debug.Log("StartSceneBuilder initialized. StartScene fixed lobby build scheduled.");
+        EditorApplication.delayCall += BuildAndSaveStartSceneLayoutOnce;
+    }
+
+    [MenuItem("Tools/Card Battle/Build Start Scene Layout")]
+    // 시작 씬 로비 UI를 하이어라키에 꺼내 두어 인스펙터에서 직접 위치를 수정할 수 있게 합니다.
+    public static void BuildStartSceneLayout()
+    {
+        EnsureStartSceneController();
+        LobbyViewReferences view = StartSceneRuntimeViewBuilder.CreateStartView(); // 씬에 있으면 재사용하고, 없으면 생성합니다.
+        if (view?.Panel != null)
+            view.Panel.SetActive(false);
+
+        GameObject root = GameObject.Find("LobbyView"); // 수정 대상 로비 루트
+        if (root != null)
+            Selection.activeObject = root;
+
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("Start scene lobby layout is ready. Move LobbyView children in the Hierarchy to adjust UI.");
+    }
+
+    // 배치모드나 메뉴에서 StartScene.unity 자체를 열고 로비 UI를 저장합니다.
+    public static void BuildAndSaveStartSceneLayout()
+    {
+        Scene previousActiveScene = SceneManager.GetActiveScene(); // 사용자가 보고 있던 씬
+        Scene startScene = FindLoadedScene(StartScenePath);
+        bool openedAdditive = false; // 작업 후 닫아야 하는지 판단하는 플래그
+
+        if (!startScene.IsValid())
+        {
+            startScene = EditorSceneManager.OpenScene(StartScenePath, OpenSceneMode.Additive);
+            openedAdditive = true;
+        }
+
+        SceneManager.SetActiveScene(startScene);
+        BuildStartSceneLayout();
+        EditorSceneManager.SaveScene(startScene);
+        AssetDatabase.SaveAssets();
+
+        if (previousActiveScene.IsValid())
+            SceneManager.SetActiveScene(previousActiveScene);
+
+        if (openedAdditive)
+            EditorSceneManager.CloseScene(startScene, true);
+
+        Debug.Log("StartScene.unity saved with fixed LobbyView hierarchy.");
+    }
+
+    // 열린 Unity에서 한 번만 자동 저장을 시도합니다.
+    private static void BuildAndSaveStartSceneLayoutOnce()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling)
+        {
+            EditorApplication.delayCall += BuildAndSaveStartSceneLayoutOnce;
+            return;
+        }
+
+        if (EditorPrefs.GetString("CardBattle.StartScene.AutoBuildVersion", string.Empty) == AutoBuildVersion)
+            return;
+
+        BuildAndSaveStartSceneLayout();
+        EditorPrefs.SetString("CardBattle.StartScene.AutoBuildVersion", AutoBuildVersion);
+    }
+
+    // 이미 열려 있는 씬 중 경로가 같은 씬을 찾습니다.
+    private static Scene FindLoadedScene(string scenePath)
+    {
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            Scene scene = SceneManager.GetSceneAt(i);
+            if (scene.path == scenePath)
+                return scene;
+        }
+
+        return default;
+    }
+
+    // 시작 씬에 컨트롤러가 없으면 생성해 로비 버튼 로직이 동작하도록 합니다.
+    private static void EnsureStartSceneController()
+    {
+        if (Object.FindFirstObjectByType<StartSceneController>() != null)
+            return;
+
+        GameObject controllerObject = new GameObject("StartSceneController");
+        controllerObject.AddComponent<StartSceneController>();
     }
 }

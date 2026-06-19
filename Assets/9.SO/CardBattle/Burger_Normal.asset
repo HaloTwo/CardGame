@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cadac204b04bace41bffa81602dd7d3e, type: 3}
   m_Name: Burger_Normal
   m_EditorClassIdentifier: Assembly-CSharp::BattleCardDefinition
-  cardName: Burger
+  cardName: "\uBC84\uAC70"
   cardType: 0
   maxHp: 6
-  cardSprite: {fileID: 0}
+  cardSprite: {fileID: -5838997692047137300, guid: 37c0603efe8708f46ae5531f57994e2d, type: 3}
   abilityText: "\uD604\uC7AC HP\uB9CC\uD07C \uD53C\uD574, \uB300\uC0C1 \uD604\uC7AC
     HP\uB9CC\uD07C \uBC18\uACA9"
   cardColor: {r: 1, g: 0.86, b: 0.45, a: 1}

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cadac204b04bace41bffa81602dd7d3e, type: 3}
   m_Name: Monster_Musou
   m_EditorClassIdentifier: Assembly-CSharp::BattleCardDefinition
-  cardName: Monster
+  cardName: "\uBAAC\uC2A4\uD130"
   cardType: 2
   maxHp: 7
-  cardSprite: {fileID: 0}
+  cardSprite: {fileID: -524001638863404317, guid: 0c462558c36d2ad46aea5ab656da4584, type: 3}
   abilityText: "\uB300\uC0C1 100% + \uC778\uC811 \uB79C\uB364 1\uC7A5 50%"
   cardColor: {r: 1, g: 0.45, b: 0.35, a: 1}

@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cadac204b04bace41bffa81602dd7d3e, type: 3}
   m_Name: Soda_Healer
   m_EditorClassIdentifier: Assembly-CSharp::BattleCardDefinition
-  cardName: Soda
+  cardName: "\uC18C\uB2E4"
   cardType: 3
   maxHp: 5
-  cardSprite: {fileID: 0}
+  cardSprite: {fileID: 3491185863890587406, guid: ee4057b22ff62a84eb6dd4500ae9a594, type: 3}
   abilityText: "\uD134 \uC2DC\uC791 \uC2DC \uC790\uC2E0 \uC81C\uC678 \uC544\uAD70
     HP 1 \uD68C\uBCF5"
   cardColor: {r: 0.45, g: 1, b: 0.55, a: 1}

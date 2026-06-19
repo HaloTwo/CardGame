@@ -37,5 +37,9 @@ public enum BattleCardType
     Ranged,
     Musou,
     Healer,
-    Bomber
+    Bomber,
+    Vampire,
+    Berserker,
+    Guardian,
+    Piercing
 }
