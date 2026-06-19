@@ -53,7 +53,25 @@ public class CardSlotView : MonoBehaviour
     /* 전투 카드 데이터를 슬롯에 연결하고 화면을 갱신합니다. */
     public void Bind(BattleCardRuntime card, Action<CardSlotView> onClicked)
     {
-        bool shouldPlayDeployFlip = boundCard != card && card != null && !card.IsDead; /* 새 카드가 배치되는 순간에만 뒤집기 연출 */
+        // 같은 카드가 다시 바인딩되는 경우.
+        // RefreshAllSlots가 여러 번 호출되면서 뒤집기 연출을 중간에 덮는 문제를 막는다.
+        if (boundCard == card)
+        {
+            clicked = onClicked;
+
+            if (flipRoutine == null)
+                Refresh();
+
+            return;
+        }
+
+        // 다른 카드로 교체되는 경우 기존 연출 정리
+        if (flipRoutine != null)
+        {
+            StopCoroutine(flipRoutine);
+            flipRoutine = null;
+            transform.localScale = baseScale;
+        }
 
         UnbindEvent();
 
@@ -62,6 +80,8 @@ public class CardSlotView : MonoBehaviour
 
         if (boundCard != null)
             boundCard.OnChanged += HandleCardChanged;
+
+        bool shouldPlayDeployFlip = boundCard != null && !boundCard.IsDead;
 
         if (shouldPlayDeployFlip)
             PlayDeployFlip();
@@ -126,13 +146,29 @@ public class CardSlotView : MonoBehaviour
             hpText.text = hasCard ? $"HP {boundCard.CurrentHp}/{boundCard.Data.MaxHp}" : string.Empty;
 
         if (abilityText != null)
-            abilityText.text = hasCard ? boundCard.Data.AbilityText : string.Empty;
+            abilityText.text = hasCard ? GetShortAbilityText(boundCard.Data.CardType) : string.Empty;
 
         if (artworkImage != null)
         {
             artworkImage.enabled = hasCard;
-            artworkImage.sprite = hasCard ? boundCard.Data.CardSprite : null;
-            artworkImage.color = hasCard && boundCard.Data.CardSprite != null ? Color.white : Color.clear;
+
+            Sprite sprite = hasCard ? ResolveCardSprite() : null;
+            artworkImage.sprite = sprite;
+
+            if (!hasCard)
+            {
+                artworkImage.color = Color.clear;
+            }
+            else if (sprite != null)
+            {
+                artworkImage.color = Color.white;
+            }
+            else
+            {
+                // 이미지가 없을 때도 투명 처리하지 말고 카드 타입 색상이라도 보여준다.
+                artworkImage.color = boundCard.Data.CardColor;
+            }
+
             artworkImage.preserveAspect = true;
         }
 
@@ -143,6 +179,23 @@ public class CardSlotView : MonoBehaviour
         }
 
         transform.localScale = baseScale;
+    }
+
+    private string GetShortAbilityText(BattleCardType cardType)
+    {
+        return cardType switch
+        {
+            BattleCardType.Normal => "현재 HP 피해\n대상 HP 반격",
+            BattleCardType.Ranged => "현재 HP 피해\n반격 없음",
+            BattleCardType.Musou => "대상 100%\n인접 1장 50%",
+            BattleCardType.Healer => "턴 시작\n아군 HP +1",
+            BattleCardType.Bomber => "대상 피해\n나머지 1 피해",
+            BattleCardType.Vampire => "피해 후\n자신 HP +2",
+            BattleCardType.Berserker => "잃은 HP만큼\n추가 피해",
+            BattleCardType.Guardian => "절반 피해\n자신 HP +1",
+            BattleCardType.Piercing => "대상 피해\n양옆 1 피해",
+            _ => string.Empty
+        };
     }
 
     /* 런타임 UI 빌더가 생성한 하위 컴포넌트를 연결합니다. */
@@ -185,17 +238,42 @@ public class CardSlotView : MonoBehaviour
     /* 전투 카드 내부 이미지/텍스트 영역을 카드 비율에 맞게 정리합니다. */
     private void ApplyRuntimeLayout()
     {
-        SetRect(nameText, new Vector2(0f, 137f), new Vector2(230f, 44f));
-        SetRect(artworkImage, new Vector2(0f, 52f), new Vector2(150f, 150f));
-        SetRect(typeText, new Vector2(0f, -38f), new Vector2(230f, 26f));
-        SetRect(hpText, new Vector2(0f, -78f), new Vector2(230f, 38f));
-        SetRect(abilityText, new Vector2(0f, -132f), new Vector2(232f, 66f));
+        SetRect(nameText, new Vector2(0f, 137f), new Vector2(230f, 40f));
+
+        // 이미지 크게
+        SetRect(artworkImage, new Vector2(0f, 55f), new Vector2(190f, 145f));
+
+        // 텍스트 아래로 정리
+        SetRect(typeText, new Vector2(0f, -35f), new Vector2(230f, 28f));
+        SetRect(hpText, new Vector2(0f, -72f), new Vector2(230f, 34f));
+        SetRect(abilityText, new Vector2(0f, -128f), new Vector2(232f, 58f));
+
+        if (nameText != null)
+        {
+            nameText.fontSize = 25;
+            nameText.fontStyle = FontStyle.Bold;
+            nameText.alignment = TextAnchor.MiddleCenter;
+        }
+
+        if (typeText != null)
+        {
+            typeText.fontSize = 18;
+            typeText.alignment = TextAnchor.MiddleCenter;
+        }
+
+        if (hpText != null)
+        {
+            hpText.fontSize = 24;
+            hpText.fontStyle = FontStyle.Bold;
+            hpText.alignment = TextAnchor.MiddleCenter;
+        }
 
         if (abilityText != null)
         {
             abilityText.resizeTextForBestFit = true;
-            abilityText.resizeTextMinSize = 11;
-            abilityText.resizeTextMaxSize = 16;
+            abilityText.resizeTextMinSize = 12;
+            abilityText.resizeTextMaxSize = 15;
+            abilityText.alignment = TextAnchor.MiddleCenter;
         }
     }
 
@@ -526,5 +604,37 @@ public class CardSlotView : MonoBehaviour
             BattleCardType.Piercing => "\uAD00\uD1B5",
             _ => "\uCE74\uB4DC"
         };
+    }
+
+    private Sprite ResolveCardSprite()
+    {
+        if (boundCard == null || boundCard.Data == null)
+            return null;
+
+        if (boundCard.Data.CardSprite != null)
+            return boundCard.Data.CardSprite;
+
+        string cardName = boundCard.Data.CardName;
+        string compactName = cardName.Replace(" ", string.Empty);
+
+        Sprite sprite = Resources.Load<Sprite>($"CardImages/{cardName}");
+        if (sprite != null)
+            return sprite;
+
+        sprite = Resources.Load<Sprite>($"CardImages/{compactName}");
+        if (sprite != null)
+            return sprite;
+
+#if UNITY_EDITOR
+        sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/4.Sprite/{cardName}.png");
+        if (sprite != null)
+            return sprite;
+
+        sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/4.Sprite/{compactName}.png");
+        if (sprite != null)
+            return sprite;
+#endif
+
+        return null;
     }
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: "\uBC84\uAC70"
   cardType: 0
   maxHp: 6
-  cardSprite: {fileID: -5838997692047137300, guid: 37c0603efe8708f46ae5531f57994e2d, type: 3}
+  cardSprite: {fileID: 21300000, guid: d1f7b6667d371ef4da5d427ea1e4015a, type: 3}
   abilityText: "\uD604\uC7AC HP\uB9CC\uD07C \uD53C\uD574, \uB300\uC0C1 \uD604\uC7AC
     HP\uB9CC\uD07C \uBC18\uACA9"
   cardColor: {r: 1, g: 0.86, b: 0.45, a: 1}

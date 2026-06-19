@@ -97,7 +97,7 @@ public static class CardBattleRuntimeViewBuilder
         CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1080f, 1920f);
-        scaler.matchWidthOrHeight = 0f;
+        scaler.matchWidthOrHeight = 1f; /* 세로 기준으로 스케일링해서 적 필드가 화면 위로 잘리지 않게 합니다. */
 
         canvasObject.AddComponent<GraphicRaycaster>();
         return canvas;
